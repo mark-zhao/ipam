@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="84c0fbf0-0eca-4faf-98fa-a739f5b47438" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/../../.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../../.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/cncf/udpa/go/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/cncf/udpa/go/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/davecgh/go-spew/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/davecgh/go-spew/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/envoyproxy/go-control-plane/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/envoyproxy/go-control-plane/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/golang/groupcache/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/golang/groupcache/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/golang/protobuf/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/golang/protobuf/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/kr/text/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/kr/text/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/pkg/errors/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/pkg/errors/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/prometheus/client_model/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/prometheus/client_model/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/stretchr/objx/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/stretchr/objx/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/stretchr/testify/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/github.com/stretchr/testify/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/crypto/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/crypto/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/mod/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/mod/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/net/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/net/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/sync/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/sync/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/sys/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/sys/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/tools/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/golang.org/x/tools/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/google.golang.org/genproto/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/google.golang.org/genproto/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/google.golang.org/grpc/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/google.golang.org/grpc/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/gopkg.in/check.v1/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/gopkg.in/check.v1/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../pkg/mod/cache/download/gopkg.in/yaml.v2/@v/list" beforeDir="false" afterPath="$PROJECT_DIR$/../../pkg/mod/cache/download/gopkg.in/yaml.v2/@v/list" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../cspinfluxdb/insert.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cspinfluxdb/insert.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../cspinfluxdbsata/insert.go" beforeDir="false" afterPath="$PROJECT_DIR$/../cspinfluxdbsata/insert.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../cspinfluxdbsata/insert.gosucceed" beforeDir="false" afterPath="$PROJECT_DIR$/../cspinfluxdbsata/insert.gosucceed" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../cspinfluxdbsata/xx.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../github.com/zjcbit/middleware-operator-manager" beforeDir="false" afterPath="$PROJECT_DIR$/../github.com/zjcbit/middleware-operator-manager" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../desktop/U盘/k8s部署ssl证书认证-多master-k8s-v1.16.4-v1.1+ipvs+calico+bgp.docx" beforeDir="false" afterPath="$PROJECT_DIR$/../../../desktop/U盘/k8s部署ssl证书认证-多master-k8s-v1.16.4-v1.1+ipvs+calico+bgp.docx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/html.html" beforeDir="false" afterPath="$PROJECT_DIR$/../../../笔记/html.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/mark.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../../../笔记/mark.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/openstack/随笔" beforeDir="false" afterPath="$PROJECT_DIR$/../../../笔记/openstack/随笔" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/storage/ceph" beforeDir="false" afterPath="$PROJECT_DIR$/../../../笔记/storage/ceph" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/storage/ceph_install" beforeDir="false" afterPath="$PROJECT_DIR$/../../../笔记/storage/ceph_install" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/工作日志" beforeDir="false" afterPath="$PROJECT_DIR$/../../../笔记/工作日志" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../笔记/待办事项.txt" beforeDir="false" />
+    </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gokurun.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="450">
+              <caret line="26" column="36" lean-forward="true" selection-start-line="26" selection-start-column="36" selection-end-line="26" selection-end-column="36" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/routers/router.go">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="725">
+              <caret line="35" column="52" lean-forward="true" selection-start-line="35" selection-start-column="52" selection-end-line="35" selection-end-column="52" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="GOROOT" path="C:\Go" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-8" />
+    <option name="y" value="-8" />
+    <option name="width" value="1616" />
+    <option name="height" value="916" />
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectView">
+    <navigator proportions="" version="1">
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope" />
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="goku" type="b2602c69:ProjectViewProjectNode" />
+              <item name="goku" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="go.gopath.indexing.explicitly.defined" value="true" />
+    <property name="go.import.settings.migrated" value="true" />
+    <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.vendoring.notification.had.been.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
+    <property name="nodejs_npm_path_reset_for_default_project" value="true" />
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="-8" y="-8" width="1616" height="916" extended-state="6" />
+    <editor active="true" />
+    <layout>
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.30526993" />
+      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
+      <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Find" order="1" />
+      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="TODO" order="6" />
+      <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
+      <window_info anchor="bottom" id="Database Changes" order="8" />
+      <window_info anchor="bottom" id="Version Control" order="9" />
+      <window_info anchor="bottom" id="Terminal" order="10" />
+      <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
+      <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
+      <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
+      <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
+      <window_info anchor="right" id="Database" order="3" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/gokurun.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="450">
+          <caret line="26" column="36" lean-forward="true" selection-start-line="26" selection-start-column="36" selection-end-line="26" selection-end-column="36" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/gin-gonic/gin/logger.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-42">
+          <caret line="227" lean-forward="true" selection-start-line="227" selection-end-line="227" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/gin-gonic/gin/mode.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="244">
+          <caret line="40" column="35" selection-start-line="40" selection-start-column="35" selection-end-line="40" selection-end-column="44" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vendor/github.com/gin-gonic/gin/recovery.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="425">
+          <caret line="30" column="29" selection-start-line="30" selection-start-column="11" selection-end-line="30" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/routers/router.go">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="725">
+          <caret line="35" column="52" lean-forward="true" selection-start-line="35" selection-start-column="52" selection-end-line="35" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+  </component>
+</project>

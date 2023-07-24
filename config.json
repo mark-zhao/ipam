@@ -1,0 +1,33 @@
+{
+  "http": {
+    "Addr": "0.0.0.0:1234",
+    "run_mode": "debug"
+  },
+  "log": {
+    "LogDir": "./log/",
+    "LogFile": "ipam",
+    "LogFileExt": "log",
+    "TimeFormat": "200601"
+  },
+  "userList": {
+    "admin":{
+      "userId": "6720aab6",
+      "userName": "admin",
+      "gender": "男",
+      "userMobile": "19101716179",
+      "pwd": "networkMan",
+      "permission": ["admin"]
+    },
+    "sunlin":{
+      "userId": "6720aab7",
+      "userName": "sunlin",
+      "gender": "男",
+      "userMobile": "19101716179",
+      "pwd": "sunlin1",
+      "permission": ["admin"]
+    }
+  },
+  "arp": {
+    "onoff": true
+  } 
+}
