@@ -89,10 +89,18 @@ func (m *memory) UpdatePrefix(_ context.Context, prefix Prefix) (Prefix, error) 
 	m.prefixes[prefix.Cidr] = *prefix.deepCopy()
 	return prefix, nil
 }
-func (m *memory) DeletePrefix(_ context.Context, prefix Prefix) (Prefix, error) {
+func (m *memory) DeletePrefix(_ context.Context, prefix Prefix, idc bool) (Prefix, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
-
-	delete(m.prefixes, prefix.Cidr)
+	if idc {
+		for k, v := range m.prefixes {
+			if v.IDC == prefix.IDC {
+				delete(m.prefixes, k)
+			}
+		}
+		return Prefix{}, nil
+	} else {
+		delete(m.prefixes, prefix.Cidr)
+	}
 	return *prefix.deepCopy(), nil
 }

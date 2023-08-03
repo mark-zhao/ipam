@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"ipam/utils/logging"
 	"sync"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -12,6 +13,7 @@ import (
 )
 
 const dbIndex = `prefix.cidr`
+const idcIndex = `prefix.idc`
 const versionKey = `version`
 
 type MongoConfig struct {
@@ -164,34 +166,39 @@ func (m *mongodb) UpdatePrefix(ctx context.Context, prefix Prefix) (Prefix, erro
 		return Prefix{}, fmt.Errorf("unable to update prefix:%s, error: %w", prefix.Cidr, err)
 	}
 	if r.MatchedCount == 0 {
-		return Prefix{}, fmt.Errorf("%w: unable to update prefix:%s", ErrOptimisticLockError, prefix.Cidr)
+		return Prefix{}, fmt.Errorf("unable to update prefix:%s", prefix.Cidr)
 	}
 	if r.ModifiedCount == 0 {
-		return Prefix{}, fmt.Errorf("%w: update did not effect any document:%s",
-			ErrOptimisticLockError, prefix.Cidr)
+		return Prefix{}, fmt.Errorf("update did not effect any document:%s",
+			prefix.Cidr)
 	}
 
 	return prefix, nil
 }
 
-func (m *mongodb) DeletePrefix(ctx context.Context, prefix Prefix) (Prefix, error) {
+func (m *mongodb) DeletePrefix(ctx context.Context, prefix Prefix, idc bool) (Prefix, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
+	if idc {
+		logging.Debug(prefix.IDC)
+		f := bson.M{idcIndex: prefix.IDC}
+		_, err := m.c.DeleteMany(context.TODO(), f)
+		return Prefix{}, err
+	} else {
+		f := bson.D{{Key: dbIndex, Value: prefix.Cidr}}
+		r := m.c.FindOneAndDelete(ctx, f)
+		// ErrNoDocuments should be returned if the prefix does not exist
+		if r.Err() != nil && errors.Is(r.Err(), mongo.ErrNoDocuments) {
+			return Prefix{}, fmt.Errorf(`prefix not found:%s, error:%w`, prefix.Cidr, r.Err())
+		} else if r.Err() != nil {
+			return Prefix{}, fmt.Errorf(`error while trying to find prefix:%s, error:%w`, prefix.Cidr, r.Err())
+		}
 
-	f := bson.D{{Key: dbIndex, Value: prefix.Cidr}}
-	r := m.c.FindOneAndDelete(ctx, f)
-
-	// ErrNoDocuments should be returned if the prefix does not exist
-	if r.Err() != nil && errors.Is(r.Err(), mongo.ErrNoDocuments) {
-		return Prefix{}, fmt.Errorf(`prefix not found:%s, error:%w`, prefix.Cidr, r.Err())
-	} else if r.Err() != nil {
-		return Prefix{}, fmt.Errorf(`error while trying to find prefix:%s, error:%w`, prefix.Cidr, r.Err())
+		j := prefixJSON{}
+		err := r.Decode(&j)
+		if err != nil {
+			return Prefix{}, fmt.Errorf("unable to read prefix:%w", err)
+		}
+		return j.toPrefix(), nil
 	}
-
-	j := prefixJSON{}
-	err := r.Decode(&j)
-	if err != nil {
-		return Prefix{}, fmt.Errorf("unable to read prefix:%w", err)
-	}
-	return j.toPrefix(), nil
 }

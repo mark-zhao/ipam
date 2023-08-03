@@ -11,5 +11,5 @@ type Storage interface {
 	ReadAllPrefixes(ctx context.Context) (Prefixes, error)
 	ReadAllPrefixCidrs(ctx context.Context) ([]string, error)
 	UpdatePrefix(ctx context.Context, prefix Prefix) (Prefix, error)
-	DeletePrefix(ctx context.Context, prefix Prefix) (Prefix, error)
+	DeletePrefix(ctx context.Context, prefix Prefix, idc bool) (Prefix, error)
 }

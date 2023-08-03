@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"ipam/utils/logging"
 	"ipam/utils/tools"
 	"math"
 	"net/netip"
@@ -190,17 +191,23 @@ func (i *ipamer) NewPrefix(ctx context.Context, cidr, gateway, parentCidr string
 	return &newPrefix, nil
 }
 
-func (i *ipamer) DeletePrefix(ctx context.Context, cidr string) (*Prefix, error) {
-	p := i.PrefixFrom(ctx, cidr)
-	if p == nil {
-		return nil, fmt.Errorf("%w: delete prefix:%s", ErrNotFound, cidr)
+func (i *ipamer) DeletePrefix(ctx context.Context, item string, idc bool) (*Prefix, error) {
+	var p = &Prefix{}
+	if idc {
+		p.IDC = item
+		logging.Debug(item, idc)
+	} else {
+		p = i.PrefixFrom(ctx, item)
+		if p == nil {
+			return nil, fmt.Errorf("%w: delete prefix:%s", ErrNotFound, item)
+		}
 	}
 	// if p.hasIPs() {
 	// 	return nil, fmt.Errorf("prefix %s has ips, delete prefix not possible", p.Cidr)
 	// }
-	prefix, err := i.storage.DeletePrefix(ctx, *p)
+	prefix, err := i.storage.DeletePrefix(ctx, *p, idc)
 	if err != nil {
-		return nil, fmt.Errorf("delete prefix:%s %w", cidr, err)
+		return nil, fmt.Errorf("delete prefix:%s %w", item, err)
 	}
 
 	return &prefix, nil
@@ -341,7 +348,7 @@ func (i *ipamer) releaseChildPrefixInternal(ctx context.Context, child *Prefix) 
 	}
 
 	parent.availableChildPrefixes[child.Cidr] = true
-	_, err := i.DeletePrefix(ctx, child.Cidr)
+	_, err := i.DeletePrefix(ctx, child.Cidr, false)
 	if err != nil {
 		return fmt.Errorf("unable to release prefix %v:%w", child, err)
 	}
@@ -873,4 +880,3 @@ func retryOnOptimisticLock(retryableFunc retry.RetryableFunc) error {
 		retry.DelayType(retry.CombineDelay(retry.BackOffDelay, retry.RandomDelay)),
 		retry.LastErrorOnly(true))
 }
-

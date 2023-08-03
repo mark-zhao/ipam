@@ -14,11 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"ipam/pkg/idc"
+	"ipam/pkg/audit"
+	idc "ipam/pkg/dcim"
 	goipam "ipam/pkg/ipam"
 
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const modelIPAM string = "IPAM"
@@ -39,8 +39,6 @@ func IPAMRouter() {
 		NewUri("POST", "/GetIP"):                       (&InstanceResource{}).GetIP,
 	}
 }
-
-var ipam goipam.Ipamer
 
 // const (
 // 	timeFormart = "2006-01-02"
@@ -212,9 +210,21 @@ func (*InstanceResource) MarkIP(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		res, err := ipam.MarkIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Description: req.Description, Date: tools.DateToString()}, req.Ips)
-		logging.Error(err)
-		resp.Render(c, 200, res, err)
-		return
+		if err != nil {
+			logging.Error(err)
+		} else {
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: strings.Join(req.Ips, ","),
+				Date:        tools.DateToString(),
+			}
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
+			}
+			resp.Render(c, 200, res, err)
+			return
+		}
 	}
 	resp.Render(c, 200, nil, err)
 	return
@@ -232,7 +242,7 @@ func (*InstanceResource) CidrsList(c *gin.Context) {
 	defer cancel()
 	cidrs, err := ipam.ReadAllPrefixCidrs(ctx)
 	m := make(map[string]map[string][]string)
-	idcs := idc.IDCINFO
+	idcs := idc.IDCs
 	for _, i := range idcs {
 		v_n := map[string][]string{}
 		for _, v := range i.VRF {
@@ -326,7 +336,8 @@ func (*InstanceResource) GetPrefix(c *gin.Context) {
 func (*InstanceResource) CreatePrefix(c *gin.Context) {
 	method := "CreatePrefix"
 	logging.Info("开始", method)
-	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+	username, ok := tools.FunAuth(c, modelIPAM, method)
+	if !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
@@ -352,7 +363,18 @@ func (*InstanceResource) CreatePrefix(c *gin.Context) {
 			_, err := ipam.NewPrefix(ctx, req.Cidr, req.Gateway, "", req.VlanID, req.VRF, req.IDC, false)
 			if err != nil {
 				resp.Render(c, 200, nil, err)
+				logging.Error(err)
 				return
+			} else {
+				a := &audit.AuditInfo{
+					Operator:    username,
+					Func:        method,
+					Description: req.Cidr,
+					Date:        tools.DateToString(),
+				}
+				if err := auditer.Add(ctx, a); err != nil {
+					logging.Error("audit insert mongo error:", err)
+				}
 			}
 		}
 		resp.Render(c, 200, CreatePrefixRes{1}, nil)
@@ -387,6 +409,16 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 				logging.Error(err)
 				resp.Render(c, 200, nil, err)
 				return
+			} else {
+				a := &audit.AuditInfo{
+					Operator:    username,
+					Func:        method,
+					Description: strings.Join(ips, ","),
+					Date:        tools.DateToString(),
+				}
+				if err := auditer.Add(ctx, a); err != nil {
+					logging.Error("audit insert mongo error:", err)
+				}
 			}
 			resp.Render(c, 200, AcquireIPRes{*p, ips}, nil)
 			return
@@ -400,7 +432,8 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 func (*InstanceResource) ReleaseIP(c *gin.Context) {
 	method := "ReleaseIP"
 	logging.Info("开始", method)
-	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+	username, ok := tools.FunAuth(c, modelIPAM, method)
+	if !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
@@ -420,6 +453,15 @@ func (*InstanceResource) ReleaseIP(c *gin.Context) {
 			resp.Render(c, 200, nil, err)
 			return
 		} else {
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: strings.Join(req.IPList, ","),
+				Date:        tools.DateToString(),
+			}
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
+			}
 			resp.Render(c, 200, res, nil)
 			return
 		}
@@ -446,7 +488,8 @@ type EditDescriptionReq struct {
 func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 	method := "EditIPUserFromPrefix"
 	logging.Info("开始", method)
-	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+	username, ok := tools.FunAuth(c, modelIPAM, method)
+	if !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
@@ -469,6 +512,18 @@ func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 		if err != nil {
 			resp.Render(c, 200, nil, err)
 			return
+		} else {
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: req.User,
+				Date:        tools.DateToString(),
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
+			}
 		}
 	}
 	resp.Render(c, 200, CreatePrefixRes{1}, nil)
@@ -479,7 +534,8 @@ func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
 	method := "EditIPDescriptionFromPrefix"
 	logging.Info("开始", method)
-	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+	username, ok := tools.FunAuth(c, modelIPAM, method)
+	if !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
@@ -497,6 +553,16 @@ func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
 			logging.Debug(err)
 			resp.Render(c, 200, nil, err)
 			return
+		} else {
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: req.IP,
+				Date:        tools.DateToString(),
+			}
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
+			}
 		}
 	}
 	resp.Render(c, 200, CreatePrefixRes{1}, nil)
@@ -507,7 +573,8 @@ func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
 func (*InstanceResource) DeletePrefix(c *gin.Context) {
 	method := "DeletePrefix"
 	logging.Info("开始", method)
-	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+	username, ok := tools.FunAuth(c, modelIPAM, method)
+	if !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
@@ -516,38 +583,25 @@ func (*InstanceResource) DeletePrefix(c *gin.Context) {
 		logging.Debug(req)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		_, err := ipam.DeletePrefix(ctx, req.Cidr)
+		_, err := ipam.DeletePrefix(ctx, req.Cidr, false)
 		if err != nil {
 			logging.Error(err)
 			resp.Render(c, 200, CreatePrefixRes{0}, errors.New("删除网段失败"))
 			return
+		} else {
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: req.Cidr,
+				Date:        tools.DateToString(),
+			}
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
+			}
 		}
 	}
 	resp.Render(c, 200, CreatePrefixRes{1}, nil)
 	return
-}
-
-// mongo存储初始化
-func init() {
-	ctx := context.Background()
-	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, "192.168.152.92", "27017"))
-	opts.Auth = &options.Credential{
-		AuthMechanism: `SCRAM-SHA-1`,
-		Username:      `ipam`,
-		Password:      `123456`,
-	}
-
-	c := goipam.MongoConfig{
-		DatabaseName:       `ipam`,
-		CollectionName:     `prefixes`,
-		MongoClientOptions: opts,
-	}
-	Storage, err := goipam.NewMongo(ctx, c)
-	if err != nil {
-		logging.Error("数据库连接失败")
-	}
-	ipam = goipam.NewWithStorage(Storage)
 }
 
 func arp(cidr string, idcname string, vlanid int) {
@@ -556,11 +610,11 @@ func arp(cidr string, idcname string, vlanid int) {
 	}
 	cmd.PingNetwork(cidr)
 	var ips []string
-	if idc.IDCINFO != nil {
-		for _, idc := range idc.IDCINFO {
-			if idc.IDCName == idcname {
-				if idc.Router != nil {
-					for _, v := range idc.Router {
+	if idc.IDCs != nil {
+		for _, i := range idc.IDCs {
+			if i.IDCName == idcname {
+				if i.Router != nil {
+					for _, v := range i.Router {
 						if len(v.IP) == 0 || len(v.Password) == 0 || len(v.UserName) == 0 || len(v.RUNARPCmd) == 0 {
 							continue
 						}

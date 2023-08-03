@@ -23,6 +23,7 @@ func InitRouter() *gin.Engine {
 		v1.IPAMRouter()
 		v1.IDCRouter()
 		v1.NOTERouter()
+		v1.AuditRouter()
 	}
 
 	for key, instance := range v1.APIs {
@@ -62,4 +63,3 @@ func errorHandler() gin.HandlerFunc {
 		c.Next()
 	}
 }
-

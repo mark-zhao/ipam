@@ -11,7 +11,7 @@ type Ipamer interface {
 	NewPrefix(ctx context.Context, cidr, gateway, parentCidr string, vlanId int, vrf, idc string, isParent bool) (*Prefix, error)
 	// DeletePrefix delete a Prefix from a string notation.
 	// If the Prefix is not found an NotFoundError is returned.
-	DeletePrefix(ctx context.Context, cidr string) (*Prefix, error)
+	DeletePrefix(ctx context.Context, cidr string, idc bool) (*Prefix, error)
 	// AcquireChildPrefix will return a Prefix with a smaller length from the given Prefix.
 	AcquireChildPrefix(ctx context.Context, parentCidr string, length uint8) (*Prefix, error)
 	// AcquireSpecificChildPrefix will return a Prefix with a smaller length from the given Prefix.
