@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	modelv1 "ipam/model/v1"
 	"ipam/utils/logging"
 	"sync"
 	"time"
@@ -26,32 +27,18 @@ type mongodb struct {
 	lock sync.RWMutex
 }
 
-func NewMongo(ctx context.Context, config MongoConfig) (Storage, error) {
-	return newMongo(ctx, config)
+func NewMongo(ctx context.Context, database *mongo.Client, conf modelv1.MongoConfig) (Storage, error) {
+	return newMongo(ctx, database, conf)
 }
 
 func (m *mongodb) Name() string {
 	return "mongodb"
 }
 
-func newMongo(ctx context.Context, config MongoConfig) (*mongodb, error) {
-	m, err := mongo.NewClient(config.MongoClientOptions)
-	if err != nil {
-		return nil, err
-	}
-	err = m.Connect(ctx)
-	if err != nil {
-		return nil, err
-	}
+func newMongo(ctx context.Context, m *mongo.Client, conf modelv1.MongoConfig) (*mongodb, error) {
+	c := m.Database(conf.DatabaseName).Collection(conf.CollectionName)
 
-	err = m.Ping(ctx, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	c := m.Database(config.DatabaseName).Collection(config.CollectionName)
-
-	_, err = c.Indexes().CreateMany(ctx, []mongo.IndexModel{{
+	_, err := c.Indexes().CreateMany(ctx, []mongo.IndexModel{{
 		Keys:    bson.M{dbIndex: 1},
 		Options: options.Index().SetUnique(true),
 	}})

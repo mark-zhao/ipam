@@ -4,12 +4,15 @@ import (
 	"context"
 	"fmt"
 	"ipam/component"
+	modelv1 "ipam/model/v1"
 	"ipam/pkg/audit"
 	"ipam/pkg/dcim"
 	goipam "ipam/pkg/ipam"
 	"ipam/pkg/note"
 	"ipam/utils/logging"
+	"os"
 
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -17,9 +20,10 @@ var resp component.GokuApiResponse
 
 const (
 	AuthMechanism = `SCRAM-SHA-1`
-	Username      = `ipam`
-	Password      = `123456`
-	DatabaseName  = `ipam`
+	Username      = "ipam"
+	Password      = "123456"
+	DatabaseName  = "ipam"
+	MongodbIP     = "192.168.152.92"
 )
 
 type Response struct {
@@ -59,31 +63,35 @@ var APIs = make(map[string]map[UriInterface]interface{})
 
 // 初始化数据库
 func init() {
-	initipam()
-	initidc()
-	initaudit()
-	initnote()
-}
-
-// dcimermongo存储初始化
-var dcimer dcim.Dcimer
-
-func initidc() {
 	ctx := context.Background()
 	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, "192.168.152.92", "27017"))
+	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, MongodbIP, "27017"))
 	opts.Auth = &options.Credential{
 		AuthMechanism: AuthMechanism,
 		Username:      Username,
 		Password:      Password,
 	}
 
-	c := dcim.MongoConfig{
-		DatabaseName:       DatabaseName,
-		CollectionName:     `idc`,
+	c := modelv1.MongoOpts{
 		MongoClientOptions: opts,
 	}
-	Storage, err := dcim.NewMongo(ctx, c)
+	m, err := modelv1.NewMongo(ctx, c)
+	if err != nil {
+		logging.Error("连接数据库失败:", err)
+		os.Exit(0)
+	}
+	initipam(ctx, m)
+	initidc(ctx, m)
+	initaudit(ctx, m)
+	initnote(ctx, m)
+}
+
+// dcimermongo存储初始化
+var dcimer dcim.Dcimer
+
+func initidc(ctx context.Context, m *mongo.Client) {
+	conf := modelv1.MongoConfig{DatabaseName: DatabaseName, CollectionName: "idc"}
+	Storage, err := dcim.NewMongo(ctx, m, conf)
 	if err != nil {
 		logging.Error("数据库连接失败")
 	}
@@ -94,22 +102,9 @@ func initidc() {
 // ipam mongo存储初始化
 var ipam goipam.Ipamer
 
-func initipam() {
-	ctx := context.Background()
-	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, "192.168.152.92", "27017"))
-	opts.Auth = &options.Credential{
-		AuthMechanism: AuthMechanism,
-		Username:      Username,
-		Password:      Password,
-	}
-
-	c := goipam.MongoConfig{
-		DatabaseName:       DatabaseName,
-		CollectionName:     `prefixes`,
-		MongoClientOptions: opts,
-	}
-	Storage, err := goipam.NewMongo(ctx, c)
+func initipam(ctx context.Context, m *mongo.Client) {
+	conf := modelv1.MongoConfig{DatabaseName: DatabaseName, CollectionName: "prefixes"}
+	Storage, err := goipam.NewMongo(ctx, m, conf)
 	if err != nil {
 		logging.Error("数据库连接失败")
 	}
@@ -119,22 +114,9 @@ func initipam() {
 // audit mongo存储初始化
 var auditer audit.Auditer
 
-func initaudit() {
-	ctx := context.Background()
-	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, "192.168.152.92", "27017"))
-	opts.Auth = &options.Credential{
-		AuthMechanism: AuthMechanism,
-		Username:      Username,
-		Password:      Password,
-	}
-
-	c := audit.MongoConfig{
-		DatabaseName:       DatabaseName,
-		CollectionName:     `audit`,
-		MongoClientOptions: opts,
-	}
-	Storage, err := audit.NewMongo(ctx, c)
+func initaudit(ctx context.Context, m *mongo.Client) {
+	conf := modelv1.MongoConfig{DatabaseName: DatabaseName, CollectionName: "audit"}
+	Storage, err := audit.NewMongo(ctx, m, conf)
 	if err != nil {
 		logging.Error("数据库连接失败")
 	}
@@ -144,22 +126,9 @@ func initaudit() {
 // noter mongo存储初始化
 var noter note.Noter
 
-func initnote() {
-	ctx := context.Background()
-	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, "192.168.152.92", "27017"))
-	opts.Auth = &options.Credential{
-		AuthMechanism: AuthMechanism,
-		Username:      Username,
-		Password:      Password,
-	}
-
-	c := note.MongoConfig{
-		DatabaseName:       DatabaseName,
-		CollectionName:     `note`,
-		MongoClientOptions: opts,
-	}
-	Storage, err := note.NewMongo(ctx, c)
+func initnote(ctx context.Context, m *mongo.Client) {
+	conf := modelv1.MongoConfig{DatabaseName: DatabaseName, CollectionName: "note"}
+	Storage, err := note.NewMongo(ctx, m, conf)
 	if err != nil {
 		logging.Error("数据库连接失败")
 	}
