@@ -16,6 +16,15 @@ type Note struct {
 	Date        string `bson:"date" json:"date"`               //分配时间
 }
 
+func (n Note) deepCopy() *Note {
+	return &Note{
+		Instance:    n.Instance,
+		Description: n.Description,
+		Operator:    n.Operator,
+		Date:        n.Date,
+	}
+}
+
 func (nr *note) CreateNote(ctx context.Context, n *Note) error {
 	_, cErr := nr.storage.CreateNote(ctx, n)
 	if cErr != nil {

@@ -29,6 +29,15 @@ type IDCS []IDC
 
 var IDCs IDCS
 
+func (I IDC) deepCopy() *IDC {
+	return &IDC{
+		IDCName:     I.IDCName,
+		Description: I.Description,
+		Router:      I.Router,
+		VRF:         I.VRF,
+	}
+}
+
 // NEWIDC create a new IDC from a string notation.
 func (d *dcim) NewIDC(idcname, description string, Router []Router, vrf []string) (*IDC, error) {
 	d.mu.Lock()

@@ -22,3 +22,12 @@ func (ar *audit) Add(ctx context.Context, a *AuditInfo) error {
 func (ar *audit) List(ctx context.Context, st, et time.Time) (Audits, error) {
 	return ar.storage.ReadAllAudit(ctx, st, et)
 }
+
+func (A AuditInfo) deepCopy() *AuditInfo {
+	return &AuditInfo{
+		Operator:    A.Operator,
+		Func:        A.Func,
+		Description: A.Description,
+		Date:        A.Date,
+	}
+}
