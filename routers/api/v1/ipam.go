@@ -146,7 +146,7 @@ type MarkIPReq struct {
 
 // 根据使用人获取ip
 func (*InstanceResource) GetIP(c *gin.Context) {
-	method := "GetIP"
+	const method = "GetIP"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -188,12 +188,11 @@ func (*InstanceResource) GetIP(c *gin.Context) {
 		return
 	}
 	resp.Render(c, 200, nil, err)
-	return
 }
 
 // MarkIP
 func (*InstanceResource) MarkIP(c *gin.Context) {
-	method := "MarkIP"
+	const method = "MarkIP"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -211,28 +210,28 @@ func (*InstanceResource) MarkIP(c *gin.Context) {
 		defer cancel()
 		res, err := ipam.MarkIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Description: req.Description, Date: tools.DateToString()}, req.Ips)
 		if err != nil {
-			logging.Error(err)
-		} else {
-			a := &audit.AuditInfo{
-				Operator:    username,
-				Func:        method,
-				Description: strings.Join(req.Ips, ","),
-				Date:        tools.DateToString(),
-			}
-			if err := auditer.Add(ctx, a); err != nil {
-				logging.Error("audit insert mongo error:", err)
-			}
-			resp.Render(c, 200, res, err)
+			logging.Error("IP标记失败:", err)
+			resp.Render(c, 200, nil, err)
 			return
 		}
+		a := &audit.AuditInfo{
+			Operator:    username,
+			Func:        method,
+			Description: strings.Join(req.Ips, ","),
+			Date:        tools.DateToString(),
+		}
+		if err := auditer.Add(ctx, a); err != nil {
+			logging.Error("audit insert mongo error:", err)
+		}
+		resp.Render(c, 200, res, err)
+		return
 	}
 	resp.Render(c, 200, nil, err)
-	return
 }
 
 // 所有获取网段
 func (*InstanceResource) CidrsList(c *gin.Context) {
-	method := "CidrsList"
+	const method = "CidrsList"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -241,6 +240,11 @@ func (*InstanceResource) CidrsList(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	cidrs, err := ipam.ReadAllPrefixCidrs(ctx)
+	if err != nil {
+		logging.Error("获取cidrs 失败:", err)
+		resp.Render(c, 200, nil, errors.New("获取cidrs 失败"))
+		return
+	}
 	m := make(map[string]map[string][]string)
 	idcs := idc.IDCs
 	for _, i := range idcs {
@@ -255,19 +259,12 @@ func (*InstanceResource) CidrsList(c *gin.Context) {
 		cs := m[prefix.IDC][prefix.VRF]
 		m[prefix.IDC][prefix.VRF] = append(cs, v)
 	}
-	if err != nil {
-		logging.Error("获取cidrs 失败", err)
-		resp.Render(c, 200, nil, errors.New("获取cidrs 失败"))
-		return
-	}
-
 	resp.Render(c, 200, CidrsListRes{m}, nil)
-	return
 }
 
 // 获取网段信息
 func (*InstanceResource) CidrsInfo(c *gin.Context) {
-	method := "PrefixList"
+	const method = "PrefixList"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -296,12 +293,11 @@ func (*InstanceResource) CidrsInfo(c *gin.Context) {
 		})
 	}
 	resp.Render(c, 200, CidrsInfoRes{items}, nil)
-	return
 }
 
 // 获取网段详细信息
 func (*InstanceResource) GetPrefix(c *gin.Context) {
-	method := "GetPrefix"
+	const method = "GetPrefix"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -329,12 +325,11 @@ func (*InstanceResource) GetPrefix(c *gin.Context) {
 
 	}
 	resp.Render(c, 200, nil, errors.New("解析参数出错"))
-	return
 }
 
 // 创建网段
 func (*InstanceResource) CreatePrefix(c *gin.Context) {
-	method := "CreatePrefix"
+	const method = "CreatePrefix"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -362,19 +357,18 @@ func (*InstanceResource) CreatePrefix(c *gin.Context) {
 			defer cancel()
 			_, err := ipam.NewPrefix(ctx, req.Cidr, req.Gateway, "", req.VlanID, req.VRF, req.IDC, false)
 			if err != nil {
+				logging.Error("创建网段失败:", err)
 				resp.Render(c, 200, nil, err)
-				logging.Error(err)
 				return
-			} else {
-				a := &audit.AuditInfo{
-					Operator:    username,
-					Func:        method,
-					Description: req.Cidr,
-					Date:        tools.DateToString(),
-				}
-				if err := auditer.Add(ctx, a); err != nil {
-					logging.Error("audit insert mongo error:", err)
-				}
+			}
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: req.Cidr,
+				Date:        tools.DateToString(),
+			}
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
 			}
 		}
 		resp.Render(c, 200, CreatePrefixRes{1}, nil)
@@ -384,7 +378,7 @@ func (*InstanceResource) CreatePrefix(c *gin.Context) {
 
 // 申请ip
 func (*InstanceResource) AcquireIP(c *gin.Context) {
-	method := "AcquireIP"
+	const method = "AcquireIP"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -406,19 +400,18 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 			arp(req.Cidr, p.IDC, p.VlanID)
 			ips, err := ipam.AcquireIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Description: req.Description, Date: tools.DateToString()}, req.Num)
 			if err != nil {
-				logging.Error(err)
+				logging.Error("申请IP失败:", err)
 				resp.Render(c, 200, nil, err)
 				return
-			} else {
-				a := &audit.AuditInfo{
-					Operator:    username,
-					Func:        method,
-					Description: strings.Join(ips, ","),
-					Date:        tools.DateToString(),
-				}
-				if err := auditer.Add(ctx, a); err != nil {
-					logging.Error("audit insert mongo error:", err)
-				}
+			}
+			a := &audit.AuditInfo{
+				Operator:    username,
+				Func:        method,
+				Description: strings.Join(ips, ","),
+				Date:        tools.DateToString(),
+			}
+			if err := auditer.Add(ctx, a); err != nil {
+				logging.Error("audit insert mongo error:", err)
 			}
 			resp.Render(c, 200, AcquireIPRes{*p, ips}, nil)
 			return
@@ -430,7 +423,7 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 
 // 释放ip
 func (*InstanceResource) ReleaseIP(c *gin.Context) {
-	method := "ReleaseIP"
+	const method = "ReleaseIP"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -449,7 +442,7 @@ func (*InstanceResource) ReleaseIP(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if res, err := ipam.ReleaseIPFromPrefix(ctx, req.Cidr, req.IPList); err != nil {
-			logging.Error(err)
+			logging.Error("释放IP失败:", err)
 			resp.Render(c, 200, nil, err)
 			return
 		} else {
@@ -465,10 +458,8 @@ func (*InstanceResource) ReleaseIP(c *gin.Context) {
 			resp.Render(c, 200, res, nil)
 			return
 		}
-
 	}
 	resp.Render(c, 20, nil, fmt.Errorf("程序内部错误"))
-	return
 }
 
 // 修改用户ip请求数据
@@ -486,7 +477,7 @@ type EditDescriptionReq struct {
 
 // 修改ip用户属性
 func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
-	method := "EditIPUserFromPrefix"
+	const method = "EditIPUserFromPrefix"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -510,29 +501,28 @@ func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 			}
 		}
 		if err != nil {
+			logging.Error("修改ip用户属性失败:", err)
 			resp.Render(c, 200, nil, err)
 			return
-		} else {
-			a := &audit.AuditInfo{
-				Operator:    username,
-				Func:        method,
-				Description: req.User,
-				Date:        tools.DateToString(),
-			}
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if err := auditer.Add(ctx, a); err != nil {
-				logging.Error("audit insert mongo error:", err)
-			}
+		}
+		a := &audit.AuditInfo{
+			Operator:    username,
+			Func:        method,
+			Description: req.User,
+			Date:        tools.DateToString(),
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := auditer.Add(ctx, a); err != nil {
+			logging.Error("audit insert mongo error:", err)
 		}
 	}
 	resp.Render(c, 200, CreatePrefixRes{1}, nil)
-	return
 }
 
 // 修改ip描述属性
 func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
-	method := "EditIPDescriptionFromPrefix"
+	const method = "EditIPDescriptionFromPrefix"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -550,28 +540,26 @@ func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
 		if err := ipam.EditIPDescriptionFromPrefix(ctx, req.Cidr, req.Description, req.IP); err != nil {
-			logging.Debug(err)
+			logging.Error("修改ip描述属性:", err)
 			resp.Render(c, 200, nil, err)
 			return
-		} else {
-			a := &audit.AuditInfo{
-				Operator:    username,
-				Func:        method,
-				Description: req.IP,
-				Date:        tools.DateToString(),
-			}
-			if err := auditer.Add(ctx, a); err != nil {
-				logging.Error("audit insert mongo error:", err)
-			}
+		}
+		a := &audit.AuditInfo{
+			Operator:    username,
+			Func:        method,
+			Description: req.IP,
+			Date:        tools.DateToString(),
+		}
+		if err := auditer.Add(ctx, a); err != nil {
+			logging.Error("audit insert mongo error:", err)
 		}
 	}
 	resp.Render(c, 200, CreatePrefixRes{1}, nil)
-	return
 }
 
 // 删除网段
 func (*InstanceResource) DeletePrefix(c *gin.Context) {
-	method := "DeletePrefix"
+	const method = "DeletePrefix"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIPAM, method)
 	if !ok {
@@ -585,25 +573,24 @@ func (*InstanceResource) DeletePrefix(c *gin.Context) {
 		defer cancel()
 		_, err := ipam.DeletePrefix(ctx, req.Cidr, false)
 		if err != nil {
-			logging.Error(err)
+			logging.Error("删除网段:", err)
 			resp.Render(c, 200, CreatePrefixRes{0}, errors.New("删除网段失败"))
 			return
-		} else {
-			a := &audit.AuditInfo{
-				Operator:    username,
-				Func:        method,
-				Description: req.Cidr,
-				Date:        tools.DateToString(),
-			}
-			if err := auditer.Add(ctx, a); err != nil {
-				logging.Error("audit insert mongo error:", err)
-			}
+		}
+		a := &audit.AuditInfo{
+			Operator:    username,
+			Func:        method,
+			Description: req.Cidr,
+			Date:        tools.DateToString(),
+		}
+		if err := auditer.Add(ctx, a); err != nil {
+			logging.Error("audit insert mongo error:", err)
 		}
 	}
 	resp.Render(c, 200, CreatePrefixRes{1}, nil)
-	return
 }
 
+// arp scan
 func arp(cidr string, idcname string, vlanid int) {
 	if !conf.Conf.Arp.Onoff {
 		return
@@ -612,38 +599,33 @@ func arp(cidr string, idcname string, vlanid int) {
 	var ips []string
 	if idc.IDCs != nil {
 		for _, i := range idc.IDCs {
-			if i.IDCName == idcname {
-				if i.Router != nil {
-					for _, v := range i.Router {
-						if len(v.IP) == 0 || len(v.Password) == 0 || len(v.UserName) == 0 || len(v.RUNARPCmd) == 0 {
-							continue
-						}
-						runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid))
-						command := fmt.Sprintf("sshpass -p %s ssh %s@%s %s", v.Password, v.UserName, v.IP, runarpcmd)
-						// command := fmt.Sprintf("sshpass -p '123456' ssh read-only@192.168.47.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
-						// command := fmt.Sprintf("sshpass -p '123456' ssh readonly@192.168.169.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
-						output, err := cmd.RunShell(command)
-						if err != nil {
-							logging.Error(err)
-							continue
-						}
-						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-						defer cancel()
+			if i.IDCName == idcname && i.Router != nil {
+				for _, v := range i.Router {
+					if len(v.IP) == 0 || len(v.Password) == 0 || len(v.UserName) == 0 || len(v.RUNARPCmd) == 0 {
+						continue
+					}
+					runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid))
+					command := fmt.Sprintf("sshpass -p %s ssh %s@%s %s", v.Password, v.UserName, v.IP, runarpcmd)
+					// command := fmt.Sprintf("sshpass -p '123456' ssh read-only@192.168.47.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
+					// command := fmt.Sprintf("sshpass -p '123456' ssh readonly@192.168.169.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
+					output, err := cmd.RunShell(command)
+					if err != nil {
+						logging.Error(err)
+						continue
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					defer cancel()
 
-						zp := regexp.MustCompile(`\s+`)
-						lines := strings.Split(output, "\n")
-						prefix := ipam.PrefixFrom(ctx, cidr)
-						for _, line := range lines {
-							ll := len(line)
-							if ll > 30 {
-								lineData := zp.Split(line, -1)
-								if _, err := netip.ParseAddr(lineData[0]); err == nil {
-									_, ok := prefix.Ips[lineData[0]]
-									if ok {
-										continue
-									} else {
-										ips = append(ips, lineData[0])
-									}
+					zp := regexp.MustCompile(`\s+`)
+					lines := strings.Split(output, "\n")
+					prefix := ipam.PrefixFrom(ctx, cidr)
+					for _, line := range lines {
+						if len(line) > 30 {
+							lineData := zp.Split(line, -1)
+							if _, err := netip.ParseAddr(lineData[0]); err == nil {
+								_, ok := prefix.Ips[lineData[0]]
+								if !ok {
+									ips = append(ips, lineData[0])
 								}
 							}
 						}

@@ -58,14 +58,14 @@ func (l *LoginResource) Login(c *gin.Context) {
 // 生成令牌
 func generateToken(c *gin.Context, user options.User) {
 	j := &component.JWT{
-		[]byte("Woshinibaba"),
+		SigningKey: []byte("Woshinibaba"),
 	}
 	claims := component.CustomClaims{
-		user.Id,
-		user.Name,
-		user.Phone,
-		user.Permission,
-		jwtgo.StandardClaims{
+		ID:    user.Id,
+		Name:  user.Name,
+		Phone: user.Phone,
+		Role:  user.Permission,
+		StandardClaims: jwtgo.StandardClaims{
 			NotBefore: int64(time.Now().Unix() - 1000), // 签名生效时间
 			ExpiresAt: int64(time.Now().Unix() + 3600), // 过期时间 一小时
 			Issuer:    "mark",                          //签名的发行者
@@ -87,5 +87,4 @@ func generateToken(c *gin.Context, user options.User) {
 		Token: token,
 	}
 	resp.Render(c, except.SUCCESS, data, nil)
-	return
 }

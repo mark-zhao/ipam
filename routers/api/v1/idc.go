@@ -50,7 +50,7 @@ type GetIdcRes struct {
 
 // 获取IDC
 func (*IDCResource) IdcList(c *gin.Context) {
-	method := "IdcList"
+	const method = "IdcList"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIDC, method); !ok {
 		logging.Info("没有权限访问")
@@ -59,12 +59,11 @@ func (*IDCResource) IdcList(c *gin.Context) {
 	}
 	idcs := idc.IDCs
 	resp.Render(c, 200, GetIdcRes{IDCS: idcs}, nil)
-	return
 }
 
 // 新建机房
 func (*IDCResource) CreateIDC(c *gin.Context) {
-	method := "CreateIDC"
+	const method = "CreateIDC"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -94,12 +93,11 @@ func (*IDCResource) CreateIDC(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, Res{0}, nil)
-	return
 }
 
 // 删除机房
 func (*IDCResource) DeleteIDC(c *gin.Context) {
-	method := "DeleteIDC"
+	const method = "DeleteIDC"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, "admin")
 	if !ok {
@@ -135,12 +133,11 @@ func (*IDCResource) DeleteIDC(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, Res{0}, nil)
-	return
 }
 
 // 新建VRF
 func (*IDCResource) CreateVRF(c *gin.Context) {
-	method := "CreateVRF"
+	const method = "CreateVRF"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -170,12 +167,11 @@ func (*IDCResource) CreateVRF(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, Res{0}, nil)
-	return
 }
 
 // 删除VRF
 func (*IDCResource) DeleteVRF(c *gin.Context) {
-	method := "DeleteVRF"
+	const method = "DeleteVRF"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -205,12 +201,11 @@ func (*IDCResource) DeleteVRF(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, Res{0}, nil)
-	return
 }
 
 // 新建路由器
 func (*IDCResource) CreateRouter(c *gin.Context) {
-	method := "CreateRouter"
+	const method = "CreateRouter"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -241,12 +236,11 @@ func (*IDCResource) CreateRouter(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, Res{0}, nil)
-	return
 }
 
 // 删除路由器
 func (*IDCResource) DeleteRouter(c *gin.Context) {
-	method := "DeleteRouter"
+	const method = "DeleteRouter"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -276,5 +270,4 @@ func (*IDCResource) DeleteRouter(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, Res{0}, nil)
-	return
 }

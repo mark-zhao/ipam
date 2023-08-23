@@ -24,12 +24,8 @@ const (
 	Password      = "123456"
 	DatabaseName  = "ipam"
 	MongodbIP     = "192.168.152.92"
+	DBPort        = "27017"
 )
-
-type Response struct {
-	msg  string      `json:"msg"`
-	data interface{} `json:"data"`
-}
 
 type UriInterface interface {
 	GetModel() string
@@ -65,7 +61,7 @@ var APIs = make(map[string]map[UriInterface]interface{})
 func init() {
 	ctx := context.Background()
 	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, MongodbIP, "27017"))
+	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, MongodbIP, DBPort))
 	opts.Auth = &options.Credential{
 		AuthMechanism: AuthMechanism,
 		Username:      Username,

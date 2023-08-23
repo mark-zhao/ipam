@@ -14,21 +14,21 @@ type Log struct {
 	TimeFormat string
 }
 
-func (self *Log) getLogFilePath() string {
-	return fmt.Sprintf("%s", self.LogDir)
+func (L *Log) getLogFilePath() string {
+	return L.LogDir
 }
 
-func (self *Log) getLogFileFullPath() string {
-	prefixPath := self.getLogFilePath()
-	suffixPath := fmt.Sprintf("%s%s.%s", self.LogFile, time.Now().Format(self.TimeFormat), self.LogFileExt)
+func (L *Log) getLogFileFullPath() string {
+	prefixPath := L.getLogFilePath()
+	suffixPath := fmt.Sprintf("%s%s.%s", L.LogFile, time.Now().Format(L.TimeFormat), L.LogFileExt)
 	return fmt.Sprintf("%s%s", prefixPath, suffixPath)
 }
 
-func (self *Log) openLogFile(filePath string) *os.File {
+func (L *Log) openLogFile(filePath string) *os.File {
 	_, err := os.Stat(filePath)
 	switch {
 	case os.IsNotExist(err):
-		self.mkDir()
+		L.mkDir()
 	case os.IsPermission(err):
 		log.Fatalf("Permission :%v", err)
 	}
@@ -41,10 +41,10 @@ func (self *Log) openLogFile(filePath string) *os.File {
 	return handle
 }
 
-func (self *Log) mkDir() {
+func (L *Log) mkDir() {
 	//dir, _ := os.Getwd()
 	//err := os.MkdirAll(dir+"/"+self.getLogFilePath(), os.ModePerm)
-	err := os.MkdirAll(self.getLogFilePath(), os.ModePerm)
+	err := os.MkdirAll(L.getLogFilePath(), os.ModePerm)
 	if err != nil {
 		panic(err)
 	}

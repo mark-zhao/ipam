@@ -30,7 +30,7 @@ type AuditListReq struct {
 
 func (*AuditResource) AuditList(c *gin.Context) {
 	layout := "2006-01-02 15:04:05" // 根据你的输入日期格式进行调整
-	method := "AuditList"
+	const method = "AuditList"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelAudit, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -61,5 +61,4 @@ func (*AuditResource) AuditList(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, nil, errors.New("没有audits"))
-	return
 }

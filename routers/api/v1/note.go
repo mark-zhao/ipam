@@ -25,7 +25,7 @@ func NOTERouter() {
 }
 
 func (*NOTEResource) NoteList(c *gin.Context) {
-	method := "NoteList"
+	const method = "NoteList"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -39,11 +39,10 @@ func (*NOTEResource) NoteList(c *gin.Context) {
 		return
 	}
 	resp.Render(c, 200, nil, errors.New("没有note"))
-	return
 }
 
 func (*NOTEResource) CreateNote(c *gin.Context) {
-	method := "CreateNote"
+	const method = "CreateNote"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -81,11 +80,10 @@ func (*NOTEResource) CreateNote(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, nil, nil)
-	return
 }
 
 func (*NOTEResource) DeleteNote(c *gin.Context) {
-	method := "DeleteNote"
+	const method = "DeleteNote"
 	logging.Info("开始", method)
 	username, ok := tools.FunAuth(c, modelIDC, method)
 	if !ok {
@@ -122,5 +120,4 @@ func (*NOTEResource) DeleteNote(c *gin.Context) {
 		}
 	}
 	resp.Render(c, 200, nil, nil)
-	return
 }
