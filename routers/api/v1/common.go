@@ -60,8 +60,13 @@ var APIs = make(map[string]map[UriInterface]interface{})
 // 初始化数据库
 func init() {
 	ctx := context.Background()
-	opts := options.Client()
-	opts.ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, MongodbIP, DBPort))
+	opts := options.Client().ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, MongodbIP, DBPort))
+	// 设置连接池大小
+	opts.SetMaxPoolSize(10)
+
+	// 设置最大空闲连接数
+	opts.SetMaxConnIdleTime(2)
+
 	opts.Auth = &options.Credential{
 		AuthMechanism: AuthMechanism,
 		Username:      Username,
