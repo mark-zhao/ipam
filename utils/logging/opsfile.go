@@ -8,6 +8,7 @@ import (
 )
 
 type Log struct {
+	LogLevel   string
 	LogDir     string
 	LogFile    string
 	LogFileExt string
@@ -16,6 +17,10 @@ type Log struct {
 
 func (L *Log) getLogFilePath() string {
 	return L.LogDir
+}
+
+func (L *Log) getLogLevel() string {
+	return L.LogLevel
 }
 
 func (L *Log) getLogFileFullPath() string {

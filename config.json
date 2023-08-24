@@ -1,9 +1,10 @@
 {
   "http": {
     "Addr": "0.0.0.0:1234",
-    "run_mode": "debug"
+    "run_mode": "debug" 
   },
   "log": {
+    "LogLevel": "INFO",
     "LogDir": "./log/",
     "LogFile": "ipam",
     "LogFileExt": "log",

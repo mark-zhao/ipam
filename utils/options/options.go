@@ -38,6 +38,7 @@ type Http struct {
 }
 
 type Log struct {
+	LogLevel   string `json:"LogLevel"`
 	LogDir     string `json:"LogDir"`
 	LogFile    string `json:"LogFile"`
 	LogFileExt string `json:"LogFileExt"`

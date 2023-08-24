@@ -33,6 +33,7 @@ var (
 
 func ConfigInit() {
 	LOG := &Log{
+		options.Conf.Log.LogLevel,
 		options.Conf.Log.LogDir,
 		options.Conf.Log.LogFile,
 		options.Conf.Log.LogFileExt,
@@ -40,16 +41,16 @@ func ConfigInit() {
 	}
 	filePath := LOG.getLogFileFullPath()
 	F = LOG.openLogFile(filePath)
-	switch options.Conf.Http.RunMode {
-	case "debug":
+	switch LOG.getLogLevel() {
+	case "DEBUG":
 		logLevel = DEBUG
-	case "info":
+	case "INFO":
 		logLevel = INFO
-	case "warning":
+	case "WARNING":
 		logLevel = WARNING
 	case "ERROR":
 		logLevel = ERROR
-	case "fatal":
+	case "FATAL":
 		logLevel = FATAL
 	default:
 		logLevel = INFO

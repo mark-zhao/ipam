@@ -12,6 +12,7 @@ import (
 
 func InitRouter() *gin.Engine {
 	r := gin.New()
+	// debug,release,test
 	gin.SetMode(options.Conf.Http.RunMode)
 	r.Use(gin.Logger(), gin.Recovery(), errorHandler())
 	login := v1.LoginResource{}
