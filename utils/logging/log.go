@@ -11,6 +11,14 @@ import (
 
 type Level int
 
+const (
+	DEBUG Level = iota
+	INFO
+	WARNING
+	ERROR
+	FATAL
+)
+
 var (
 	F *os.File
 
@@ -20,14 +28,7 @@ var (
 	logger     *log.Logger
 	logPrefix  = ""
 	levelFlags = []string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL"}
-)
-
-const (
-	DEBUG Level = iota
-	INFO
-	WARNING
-	ERROR
-	FATAL
+	logLevel   Level // set default logLevel as INFO
 )
 
 func ConfigInit() {
@@ -39,33 +40,55 @@ func ConfigInit() {
 	}
 	filePath := LOG.getLogFileFullPath()
 	F = LOG.openLogFile(filePath)
+	switch options.Conf.Http.RunMode {
+	case "debug":
+		logLevel = DEBUG
+	case "info":
+		logLevel = INFO
+	case "warning":
+		logLevel = WARNING
+	case "ERROR":
+		logLevel = ERROR
+	case "fatal":
+		logLevel = FATAL
+	default:
+		logLevel = INFO
+	}
 
 	logger = log.New(F, DefaultPrefix, log.LstdFlags)
 }
 
 func Debug(v ...interface{}) {
-	setPrefix(DEBUG)
-	logger.Println(v)
+	if logLevel <= DEBUG {
+		setPrefix(DEBUG)
+		logger.Println(v...)
+	}
 }
 
 func Info(v ...interface{}) {
-	setPrefix(INFO)
-	logger.Println(v)
+	if logLevel <= INFO {
+		setPrefix(INFO)
+		logger.Println(v...)
+	}
 }
 
 func Warn(v ...interface{}) {
-	setPrefix(WARNING)
-	logger.Println(v)
+	if logLevel <= WARNING {
+		setPrefix(WARNING)
+		logger.Println(v...)
+	}
 }
 
 func Error(v ...interface{}) {
-	setPrefix(ERROR)
-	logger.Printf("%+v", v)
+	if logLevel <= FATAL {
+		setPrefix(ERROR)
+		logger.Printf("%+v", v)
+	}
 }
 
 func Fatal(v ...interface{}) {
 	setPrefix(FATAL)
-	logger.Fatalln(v)
+	logger.Fatalln(v...)
 }
 
 func setPrefix(level Level) {
