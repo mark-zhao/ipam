@@ -2,8 +2,10 @@ package v1
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"ipam/utils/aeser"
 	"ipam/utils/cmd"
 	"ipam/utils/logging"
 	conf "ipam/utils/options"
@@ -28,6 +30,7 @@ func IPAMRouter() {
 	APIs["/ipam"] = map[UriInterface]interface{}{
 		NewUri("GET", "/CidrsList"):                    (&InstanceResource{}).CidrsList,
 		NewUri("GET", "/CidrsInfo"):                    (&InstanceResource{}).CidrsInfo,
+		NewUri("GET", "/Cidrs"):                        (&InstanceResource{}).Cidrs,
 		NewUri("POST", "/GetPrefix"):                   (&InstanceResource{}).GetPrefix,
 		NewUri("POST", "/CreatePrefix"):                (&InstanceResource{}).CreatePrefix,
 		NewUri("POST", "/AcquireIP"):                   (&InstanceResource{}).AcquireIP,
@@ -86,6 +89,7 @@ type AcquireIPReq struct {
 	Description string `json:"description"`
 	Num         int    `json:"num"`
 	User        string `json:"user"`
+	Project     string `json:"project"` //项目
 }
 
 type AcquireIPRes struct {
@@ -141,6 +145,7 @@ type MarkIPReq struct {
 	Cidr        string   `json:"cidr"`
 	Ips         []string `json:"ips"`
 	User        string   `json:"user"`
+	Project     string   `json:"project"` //项目
 	Description string   `json:"description"`
 }
 
@@ -160,7 +165,7 @@ func (*InstanceResource) GetIP(c *gin.Context) {
 			resp.Render(c, 200, nil, errors.New("参数不能为空"))
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		cidrs, err := ipam.ReadAllPrefixCidrs(ctx)
 		if err != nil {
@@ -206,9 +211,9 @@ func (*InstanceResource) MarkIP(c *gin.Context) {
 			resp.Render(c, 200, nil, errors.New("参数不能为空"))
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
-		res, err := ipam.MarkIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Description: req.Description, Date: tools.DateToString()}, req.Ips)
+		res, err := ipam.MarkIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Project: req.Project, Description: req.Description, Date: tools.DateToString()}, req.Ips)
 		if err != nil {
 			logging.Error("IP标记失败:", err)
 			resp.Render(c, 200, nil, err)
@@ -237,7 +242,7 @@ func (*InstanceResource) CidrsList(c *gin.Context) {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	cidrs, err := ipam.ReadAllPrefixCidrs(ctx)
 	if err != nil {
@@ -262,15 +267,43 @@ func (*InstanceResource) CidrsList(c *gin.Context) {
 	resp.Render(c, 200, CidrsListRes{m}, nil)
 }
 
-// 获取网段信息
-func (*InstanceResource) CidrsInfo(c *gin.Context) {
-	const method = "PrefixList"
+type CidrsRes struct {
+	Cidrs []goipam.Prefix `json:"cidrs"`
+}
+
+// 获取所有网段信息
+func (*InstanceResource) Cidrs(c *gin.Context) {
+	const method = "Cidrs"
 	logging.Info("开始", method)
 	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	cidrs, err := ipam.ReadAllPrefixCidrs(ctx)
+	if err != nil {
+		logging.Error("获取cidrs 失败", err)
+		resp.Render(c, 200, nil, errors.New("获取cidrs 失败"))
+		return
+	}
+	var items []goipam.Prefix
+	for _, v := range cidrs {
+		p := ipam.PrefixFrom(ctx, v)
+		items = append(items, *p)
+	}
+	resp.Render(c, 200, CidrsRes{items}, nil)
+}
+
+// 获取网段信息
+func (*InstanceResource) CidrsInfo(c *gin.Context) {
+	const method = "CidrsInfo"
+	logging.Info("开始", method)
+	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+		resp.Render(c, 403, nil, errors.New("没有权限访问"))
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	cidrs, err := ipam.ReadAllPrefixCidrs(ctx)
 	if err != nil {
@@ -310,11 +343,15 @@ func (*InstanceResource) GetPrefix(c *gin.Context) {
 			return
 		}
 		logging.Debug(req)
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		p := ipam.PrefixFrom(ctx, req.Cidr)
 		if p != nil {
-			arp(req.Cidr, p.IDC, p.VlanID)
+			if err := arp(req.Cidr, p.IDC, p.VlanID); err != nil {
+				logging.Info(err)
+				resp.Render(c, 200, nil, fmt.Errorf("arp scan 错误"))
+				return
+			}
 			a := ipam.PrefixFrom(ctx, req.Cidr)
 			if a != nil {
 				logging.Debug(*a)
@@ -353,7 +390,7 @@ func (*InstanceResource) CreatePrefix(c *gin.Context) {
 			resp.Render(c, 200, nil, errors.New("gateway 输入有错误"))
 			return
 		} else {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 			defer cancel()
 			_, err := ipam.NewPrefix(ctx, req.Cidr, req.Gateway, "", req.VlanID, req.VRF, req.IDC, false)
 			if err != nil {
@@ -393,12 +430,14 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 			resp.Render(c, 200, nil, errors.New("用户或描述不能为空"))
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		p := ipam.PrefixFrom(ctx, req.Cidr)
 		if p != nil {
-			arp(req.Cidr, p.IDC, p.VlanID)
-			ips, err := ipam.AcquireIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Description: req.Description, Date: tools.DateToString()}, req.Num)
+			if err := arp(req.Cidr, p.IDC, p.VlanID); err != nil {
+				logging.Debug(err)
+			}
+			ips, err := ipam.AcquireIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Project: req.Project, Description: req.Description, Date: tools.DateToString()}, req.Num)
 			if err != nil {
 				logging.Error("申请IP失败:", err)
 				resp.Render(c, 200, nil, err)
@@ -439,7 +478,7 @@ func (*InstanceResource) ReleaseIP(c *gin.Context) {
 			resp.Render(c, 200, nil, errors.New("网段或ips不能为空"))
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		if res, err := ipam.ReleaseIPFromPrefix(ctx, req.Cidr, req.IPList); err != nil {
 			logging.Error("释放IP失败:", err)
@@ -494,7 +533,7 @@ func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 		}
 		var err error
 		for k, v := range req.IPList {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 			defer cancel()
 			if err = ipam.EditIPUserFromPrefix(ctx, k, req.User, v); err != nil {
 				logging.Debug(err)
@@ -511,7 +550,7 @@ func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 			Description: req.User,
 			Date:        tools.DateToString(),
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		if err := auditer.Add(ctx, a); err != nil {
 			logging.Error("audit insert mongo error:", err)
@@ -537,7 +576,7 @@ func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
 			resp.Render(c, 200, nil, errors.New("描述不能为空和iplist都不能为空"))
 			return
 		}
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		if err := ipam.EditIPDescriptionFromPrefix(ctx, req.Cidr, req.Description, req.IP); err != nil {
 			logging.Error("修改ip描述属性:", err)
@@ -569,7 +608,7 @@ func (*InstanceResource) DeletePrefix(c *gin.Context) {
 	var req DeletePrefixReq
 	if c.Bind(&req) == nil {
 		logging.Debug(req)
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		_, err := ipam.DeletePrefix(ctx, req.Cidr, false)
 		if err != nil {
@@ -591,9 +630,9 @@ func (*InstanceResource) DeletePrefix(c *gin.Context) {
 }
 
 // arp scan
-func arp(cidr string, idcname string, vlanid int) {
+func arp(cidr string, idcname string, vlanid int) error {
 	if !conf.Conf.Arp.Onoff {
-		return
+		return nil
 	}
 	cmd.PingNetwork(cidr)
 	var ips []string
@@ -604,16 +643,45 @@ func arp(cidr string, idcname string, vlanid int) {
 					if len(v.IP) == 0 || len(v.Password) == 0 || len(v.UserName) == 0 || len(v.RUNARPCmd) == 0 {
 						continue
 					}
-					runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid))
-					command := fmt.Sprintf("sshpass -p %s ssh %s@%s %s", v.Password, v.UserName, v.IP, runarpcmd)
-					// command := fmt.Sprintf("sshpass -p '123456' ssh read-only@192.168.47.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
-					// command := fmt.Sprintf("sshpass -p '123456' ssh readonly@192.168.169.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
-					output, err := cmd.RunShell(command)
+					encryptResult, err := hex.DecodeString(v.Password)
 					if err != nil {
-						logging.Error(err)
-						continue
+						return err
 					}
-					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					hexKey := "6c1acf9ad6f12ff7e3c5b94df9f9ef329996b6ea7d148afafe76765d42d0a876"
+					key, err := hex.DecodeString(hexKey)
+					if err != nil {
+						return err
+					}
+					Pwresult, err := aeser.AESDecrypt(encryptResult, key)
+					if err != nil {
+						return err
+					}
+					var output string
+					if v.Brand == "华为" {
+						cmds := []string{
+							"screen-length 0 temporary",
+							fmt.Sprintf("display arp interface Vlanif %s", strconv.Itoa(vlanid)),
+							//    add more commands here...
+						}
+						output, err = cmd.RunShellHW(v.UserName, string(Pwresult), v.IP, cmds)
+						if err != nil {
+							logging.Error(err)
+							return err
+						}
+					} else {
+						runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid))
+						command := fmt.Sprintf("/usr/bin/sshpass -p '%s' ssh %s@%s '%s'", Pwresult, v.UserName, v.IP, runarpcmd)
+						// command := fmt.Sprintf("sshpass -p '123456' ssh read-only@192.168.47.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
+						// command := fmt.Sprintf("sshpass -p '123456' ssh readonly@192.168.169.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
+						logging.Debug(command)
+						output, err = cmd.RunShell(command)
+						if err != nil {
+							logging.Error(err)
+							return err
+						}
+					}
+
+					ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 					defer cancel()
 
 					zp := regexp.MustCompile(`\s+`)
@@ -636,13 +704,13 @@ func arp(cidr string, idcname string, vlanid int) {
 		}
 	}
 	if ips == nil {
-		return
+		return nil
 	}
 	ips = tools.RemoveDuplicateString(ips)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	if _, err := ipam.MarkIP(ctx, cidr, goipam.IPDetail{Operator: "networkMan", User: "arp", Description: "arp scan", Date: tools.DateToString()}, ips); err != nil {
-		logging.Debug("arp ", "标记失败", err)
-		return
+	if _, err := ipam.MarkIP(ctx, cidr, goipam.IPDetail{Operator: "networkMan", User: "arp", Project: "arp scan", Description: "arp scan", Date: tools.DateToString()}, ips); err != nil {
+		return fmt.Errorf("arp 标记失败: %s", err)
 	}
+	return nil
 }

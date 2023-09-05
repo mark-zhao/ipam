@@ -2,8 +2,10 @@ package v1
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"ipam/utils/aeser"
 	"ipam/utils/logging"
 	"ipam/utils/tools"
 	"time"
@@ -150,6 +152,12 @@ func (*IDCResource) CreateVRF(c *gin.Context) {
 	var req Req
 	if c.ShouldBind(&req.IDC) == nil {
 		logging.Debug(req)
+		idsInfo := req.IDC
+		if idsInfo.IDCName == "" || idsInfo.VRF == nil || idsInfo.VRF[0] == "" {
+			logging.Info("idcname 和 vrf 不能为空")
+			resp.Render(c, 200, nil, fmt.Errorf("idcname 和 vrf 不能为空"))
+			return
+		}
 		if err := dcimer.CreateVRF(ctx, req.IDC); err != nil {
 			logging.Info("录入数据库失败", err)
 			resp.Render(c, 200, nil, err)
@@ -219,6 +227,22 @@ func (*IDCResource) CreateRouter(c *gin.Context) {
 	if c.ShouldBind(&req.IDC) == nil {
 		logging.Debug(req)
 		r := &req.IDC
+		//加密
+		if r.Router == nil && r.Router[0].Password == "" {
+			resp.Render(c, 200, nil, fmt.Errorf("密码为空"))
+			return
+		}
+		hexKey := "6c1acf9ad6f12ff7e3c5b94df9f9ef329996b6ea7d148afafe76765d42d0a876"
+		key, err := hex.DecodeString(hexKey)
+		if err != nil {
+			panic(err)
+		}
+		encryptResult, err := aeser.AESEncrypt([]byte(r.Router[0].Password), key)
+		if err != nil {
+			panic(err)
+		}
+		Pwresult := hex.EncodeToString(encryptResult)
+		r.Router[0].Password = Pwresult
 		if err := dcimer.CreateRouter(ctx, req.IDC); err != nil {
 			logging.Info("录入数据库失败", err)
 			resp.Render(c, 200, nil, err)

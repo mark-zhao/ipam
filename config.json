@@ -30,5 +30,8 @@
   },
   "arp": {
     "onoff": true
-  } 
+  },
+  "aeser": {
+    "key": "6c1acf9ad6f12ff7e3c5b94df9f9ef329996b6ea7d148afafe76765d42d0a876"
+  }
 }

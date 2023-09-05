@@ -60,6 +60,7 @@ var APIs = make(map[string]map[UriInterface]interface{})
 // 初始化数据库
 func init() {
 	ctx := context.Background()
+	//opts.ApplyURI("mongodb://172.29.253.89:27001,172.29.253.90:27001/ipam?replicaSet=ipam_repl")
 	opts := options.Client().ApplyURI(fmt.Sprintf(`mongodb://%s:%s`, MongodbIP, DBPort))
 	// 设置连接池大小
 	opts.SetMaxPoolSize(10)

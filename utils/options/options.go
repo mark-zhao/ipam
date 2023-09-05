@@ -3,7 +3,6 @@ package options
 import (
 	"encoding/json"
 	"flag"
-	"io/ioutil"
 	"log"
 	"os"
 )
@@ -70,7 +69,7 @@ func Getconfig() *Config {
 // 读json 文件
 func (jst *JsonStruct) Load(filename string, v interface{}) {
 	//ReadFile函数会读取文件的全部内容，并将结果以[]byte类型返回
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal("error:", err)
 		return

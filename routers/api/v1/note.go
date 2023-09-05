@@ -15,6 +15,8 @@ import (
 type NOTEResource struct {
 }
 
+const modelNOTE string = "NOTE"
+
 // 注册路由
 func NOTERouter() {
 	APIs["/note"] = map[UriInterface]interface{}{
@@ -27,7 +29,7 @@ func NOTERouter() {
 func (*NOTEResource) NoteList(c *gin.Context) {
 	const method = "NoteList"
 	logging.Info("开始", method)
-	if _, ok := tools.FunAuth(c, modelIPAM, method); !ok {
+	if _, ok := tools.FunAuth(c, modelNOTE, method); !ok {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
@@ -44,7 +46,7 @@ func (*NOTEResource) NoteList(c *gin.Context) {
 func (*NOTEResource) CreateNote(c *gin.Context) {
 	const method = "CreateNote"
 	logging.Info("开始", method)
-	username, ok := tools.FunAuth(c, modelIDC, method)
+	username, ok := tools.FunAuth(c, modelNOTE, method)
 	if !ok {
 		logging.Info("没有权限访问")
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
@@ -85,7 +87,7 @@ func (*NOTEResource) CreateNote(c *gin.Context) {
 func (*NOTEResource) DeleteNote(c *gin.Context) {
 	const method = "DeleteNote"
 	logging.Info("开始", method)
-	username, ok := tools.FunAuth(c, modelIDC, method)
+	username, ok := tools.FunAuth(c, modelNOTE, method)
 	if !ok {
 		logging.Info("没有权限访问")
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))

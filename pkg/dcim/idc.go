@@ -6,15 +6,16 @@ import (
 	"fmt"
 	"ipam/utils/logging"
 	"ipam/utils/tools"
+	"net/netip"
 )
 
 // 路由器信息
 type Router struct {
-	IP         string `bson:"ip" json:"ip"`
-	UserName   string `bson:"username" json:"username"`
-	Password   string `bson:"password" json:"password"`
-	RUNARPCmd  string `bson:"runarpcmd" json:"runarpcmd"`
-	RUNPINGCmd string `bson:"runpingcmd" json:"runpingcmd"`
+	IP        string `bson:"ip" json:"ip"`
+	UserName  string `bson:"username" json:"username"`
+	Password  string `bson:"password" json:"password"`
+	RUNARPCmd string `bson:"runarpcmd" json:"runarpcmd"`
+	Brand     string `bson:"brand" json:"brand"`
 }
 
 // 机房信息
@@ -124,6 +125,9 @@ func (d *dcim) CreateRouter(ctx context.Context, i IDC) error {
 	oi, err := d.storage.ReadIDC(ctx, i.IDCName)
 	if err != nil {
 		return err
+	}
+	if _, err := netip.ParseAddr(i.Router[0].IP); err != nil {
+		return fmt.Errorf("路由器ip不是一个合适的ip")
 	}
 	for _, v := range oi.Router {
 		if v.IP == i.Router[0].IP {

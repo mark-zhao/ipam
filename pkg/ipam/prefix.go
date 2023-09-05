@@ -31,6 +31,7 @@ var (
 type IPDetail struct {
 	Operator    string `json:"operator"`    //操作员
 	User        string `json:"user"`        //使用人
+	Project     string `json:"project"`     //项目
 	Description string `json:"description"` //描述
 	Date        string `json:"date"`        //分配时间
 }
@@ -397,7 +398,7 @@ func (i *ipamer) MarkIP(ctx context.Context, prefixCidr string, ipDetail IPDetai
 	}
 	_, err = i.storage.UpdatePrefix(ctx, *prefix)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to write to database")
+		return nil, fmt.Errorf("failed to write to database")
 	}
 	return res, nil
 }
@@ -612,7 +613,7 @@ func PrefixesOverlapping(i *ipamer, existingPrefixes []string, newPrefixes []str
 				}
 				for ip := iprange.From(); eip.Contains(ip); ip = ip.Next() {
 					ipstring := ip.String()
-					prefix.Ips[ipstring] = IPDetail{"networkman", np, "子网段使用", tools.DateToString()}
+					prefix.Ips[ipstring] = IPDetail{"networkman", np, "子网段使用", "子网段使用", tools.DateToString()}
 				}
 				_, err := i.storage.UpdatePrefix(ctx, *prefix)
 				if err != nil {
@@ -663,11 +664,11 @@ func (i *ipamer) newPrefix(cidr, gateway string, vlanId int, vrf, idc, parentCid
 	// FIXME: should this be done by the user ?
 	// First ip in the prefix and broadcast is blocked.
 	iprange := netipx.RangeOfPrefix(ipnet)
-	p.Ips[gateway] = IPDetail{"networkman", "networkman", "网关地址", tools.DateToString()}
-	p.Ips[iprange.From().String()] = IPDetail{"networkman", "networkman", "网络地址", tools.DateToString()}
+	p.Ips[gateway] = IPDetail{"networkman", "networkman", "networkMan", "网关地址", tools.DateToString()}
+	p.Ips[iprange.From().String()] = IPDetail{"networkman", "networkman", "networkMan", "网络地址", tools.DateToString()}
 	if ipnet.Addr().Is4() {
 		// broadcast is ipv4 only
-		p.Ips[iprange.To().String()] = IPDetail{"networkman", "networkman", "广播地址", tools.DateToString()}
+		p.Ips[iprange.To().String()] = IPDetail{"networkman", "networkman", "networkMan", "广播地址", tools.DateToString()}
 	}
 
 	return p, nil
