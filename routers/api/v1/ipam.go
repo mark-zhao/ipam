@@ -347,7 +347,7 @@ func (*InstanceResource) GetPrefix(c *gin.Context) {
 		defer cancel()
 		p := ipam.PrefixFrom(ctx, req.Cidr)
 		if p != nil {
-			if err := arp(req.Cidr, p.IDC, p.VlanID); err != nil {
+			if err := arp(req.Cidr, p.IDC, p.VlanID, p.VRF); err != nil {
 				logging.Info(err)
 				resp.Render(c, 200, nil, fmt.Errorf("arp scan 错误"))
 				return
@@ -434,7 +434,7 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 		defer cancel()
 		p := ipam.PrefixFrom(ctx, req.Cidr)
 		if p != nil {
-			if err := arp(req.Cidr, p.IDC, p.VlanID); err != nil {
+			if err := arp(req.Cidr, p.IDC, p.VlanID, p.VRF); err != nil {
 				logging.Debug(err)
 			}
 			ips, err := ipam.AcquireIP(ctx, req.Cidr, goipam.IPDetail{Operator: username, User: req.User, Project: req.Project, Description: req.Description, Date: tools.DateToString()}, req.Num)
@@ -630,7 +630,7 @@ func (*InstanceResource) DeletePrefix(c *gin.Context) {
 }
 
 // arp scan
-func arp(cidr string, idcname string, vlanid int) error {
+func arp(cidr string, idcname string, vlanid int, vrf string) error {
 	if !conf.Conf.Arp.Onoff {
 		return nil
 	}
@@ -668,6 +668,15 @@ func arp(cidr string, idcname string, vlanid int) error {
 							logging.Error(err)
 							return err
 						}
+					} else if v.Brand == "思科" {
+						runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid), vrf)
+						command := fmt.Sprintf("/usr/bin/sshpass -p '%s' ssh %s@%s '%s'", Pwresult, v.UserName, v.IP, runarpcmd)
+						logging.Debug(command)
+						output, err = cmd.RunShell(command)
+						if err != nil {
+							logging.Error(err)
+							return err
+						}
 					} else {
 						runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid))
 						command := fmt.Sprintf("/usr/bin/sshpass -p '%s' ssh %s@%s '%s'", Pwresult, v.UserName, v.IP, runarpcmd)
@@ -689,6 +698,11 @@ func arp(cidr string, idcname string, vlanid int) error {
 					prefix := ipam.PrefixFrom(ctx, cidr)
 					for _, line := range lines {
 						if len(line) > 30 {
+							regex := regexp.MustCompile(`(?i)incomplete`)
+							if regex.MatchString(strings.ToLower(line)) {
+								logging.Debug(line)
+								continue
+							}
 							lineData := zp.Split(line, -1)
 							if _, err := netip.ParseAddr(lineData[0]); err == nil {
 								_, ok := prefix.Ips[lineData[0]]
