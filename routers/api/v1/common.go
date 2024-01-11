@@ -9,6 +9,7 @@ import (
 	"ipam/pkg/dcim"
 	goipam "ipam/pkg/ipam"
 	"ipam/pkg/note"
+	Administrator "ipam/pkg/user"
 	"ipam/utils/logging"
 	"os"
 
@@ -55,6 +56,13 @@ func (u *Uri) GetUri() string {
 	return u.uri
 }
 
+var Permissions = []Administrator.Permission{
+	{
+		Id:    0,
+		Label: "admin",
+	},
+}
+
 var APIs = make(map[string]map[UriInterface]interface{})
 
 // 初始化数据库
@@ -82,10 +90,12 @@ func init() {
 		logging.Error("连接数据库失败:", err)
 		os.Exit(0)
 	}
+
 	initipam(ctx, m)
 	initidc(ctx, m)
 	initaudit(ctx, m)
 	initnote(ctx, m)
+	initadmin(ctx, m)
 }
 
 // dcimermongo存储初始化
@@ -135,4 +145,24 @@ func initnote(ctx context.Context, m *mongo.Client) {
 		logging.Error("数据库连接失败")
 	}
 	noter = note.NewWithStorage(Storage)
+}
+
+var admin Administrator.Administrator
+
+func initadmin(ctx context.Context, m *mongo.Client) {
+	conf := modelv1.MongoConfig{DatabaseName: DatabaseName, CollectionName: "user"}
+	Storage, err := Administrator.NewMongo(ctx, m, conf)
+	if err != nil {
+		logging.Error("数据库连接失败")
+	}
+	admin = Administrator.NewWithStorage(Storage)
+	if _, err := admin.Get(ctx, "admin"); err != nil {
+		admin.Add(ctx, &Administrator.User{
+			Name:       "admin",
+			Gender:     "男",
+			Phone:      19101716179,
+			Pwd:        "MBWDhb9U",
+			Permission: map[string]Administrator.Permission2{"admin": {Id: 0, Label: "admin"}},
+		})
+	}
 }

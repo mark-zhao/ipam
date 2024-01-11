@@ -42,9 +42,15 @@ func FunAuth(c *gin.Context, model, method string) (string, bool) {
 		return "", false
 	} else {
 		if user, ok := claims.(*component.CustomClaims); ok {
-			if IsExistItem(model, user.Role) || IsExistItem(method, user.Role) || IsExistItem("admin", user.Role) {
+			if _, ok := user.Role["admin"]; ok {
 				return user.Name, true
 			}
+			if _, ok := user.Role[method]; ok {
+				return user.Name, true
+			}
+			// if IsExistItem(model, user.Role) || IsExistItem(method, user.Role) || IsExistItem("admin", user.Role) {
+			// 	return user.Name, true
+			// }
 		} else {
 			logging.Debug("解析失败")
 			return "", false

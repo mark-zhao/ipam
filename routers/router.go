@@ -25,6 +25,7 @@ func InitRouter() *gin.Engine {
 		v1.IDCRouter()
 		v1.NOTERouter()
 		v1.AuditRouter()
+		v1.UserRouter()
 	}
 
 	for key, instance := range v1.APIs {

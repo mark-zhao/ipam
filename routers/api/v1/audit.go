@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	Administrator "ipam/pkg/user"
 	"ipam/utils/logging"
 	"ipam/utils/tools"
 	"time"
@@ -18,6 +19,14 @@ type AuditResource struct {
 
 // 注册路由
 func AuditRouter() {
+	p := Administrator.Permission{
+		Id:    5,
+		Label: modelAudit,
+		Children: []Administrator.Permission2{
+			{Id: 51, Label: "audit"},
+		},
+	}
+	Permissions = append(Permissions, p)
 	APIs["/audit"] = map[UriInterface]interface{}{
 		NewUri("POST", "/AuditList"): (&AuditResource{}).AuditList,
 	}

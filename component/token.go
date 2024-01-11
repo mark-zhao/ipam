@@ -2,6 +2,7 @@ package component
 
 import (
 	"errors"
+	Administrator "ipam/pkg/user"
 	"ipam/utils/except"
 	"ipam/utils/logging"
 	"log"
@@ -67,10 +68,10 @@ var (
 
 // 载荷，可以加一些自己需要的信息
 type CustomClaims struct {
-	ID    string   `json:"userId"`
-	Name  string   `json:"name"`
-	Phone string   `json:"phone"`
-	Role  []string `json:"role"`
+	ID    string                               `json:"userId"`
+	Name  string                               `json:"name"`
+	Phone int                                  `json:"phone"`
+	Role  map[string]Administrator.Permission2 `json:"role"`
 	jwt.StandardClaims
 }
 

@@ -19,6 +19,7 @@ import (
 	"ipam/pkg/audit"
 	idc "ipam/pkg/dcim"
 	goipam "ipam/pkg/ipam"
+	Administrator "ipam/pkg/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,25 @@ const modelIPAM string = "IPAM"
 
 // 注册路由
 func IPAMRouter() {
+	p := Administrator.Permission{
+		Id:    3,
+		Label: modelIPAM,
+		Children: []Administrator.Permission2{
+			{Id: 31, Label: "CidrsList"},
+			{Id: 32, Label: "CidrsInfo"},
+			{Id: 33, Label: "Cidrs"},
+			{Id: 34, Label: "GetPrefix"},
+			{Id: 35, Label: "CreatePrefix"},
+			{Id: 36, Label: "AcquireIP"},
+			{Id: 37, Label: "ReleaseIP"},
+			{Id: 38, Label: "MarkIP"},
+			{Id: 39, Label: "EditIPUserFromPrefix"},
+			{Id: 310, Label: "EditIPDescriptionFromPrefix"},
+			{Id: 311, Label: "DeletePrefix"},
+			{Id: 312, Label: "GetIP"},
+		},
+	}
+	Permissions = append(Permissions, p)
 	APIs["/ipam"] = map[UriInterface]interface{}{
 		NewUri("GET", "/CidrsList"):                    (&InstanceResource{}).CidrsList,
 		NewUri("GET", "/CidrsInfo"):                    (&InstanceResource{}).CidrsInfo,
@@ -640,7 +660,7 @@ func arp(cidr string, idcname string, vlanid int, vrf string) error {
 		for _, i := range idc.IDCs {
 			if i.IDCName == idcname && i.Router != nil {
 				for _, v := range i.Router {
-					if len(v.IP) == 0 || len(v.Password) == 0 || len(v.UserName) == 0 || len(v.RUNARPCmd) == 0 {
+					if len(v.IP) == 0 || len(v.Password) == 0 || len(v.UserName) == 0 {
 						continue
 					}
 					encryptResult, err := hex.DecodeString(v.Password)
@@ -669,7 +689,7 @@ func arp(cidr string, idcname string, vlanid int, vrf string) error {
 							return err
 						}
 					} else if v.Brand == "思科" {
-						runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid), vrf)
+						runarpcmd := fmt.Sprintf("show ip arp vlan %s  vrf %s", strconv.Itoa(vlanid), vrf)
 						command := fmt.Sprintf("/usr/bin/sshpass -p '%s' ssh %s@%s '%s'", Pwresult, v.UserName, v.IP, runarpcmd)
 						logging.Debug(command)
 						output, err = cmd.RunShell(command)
@@ -677,11 +697,20 @@ func arp(cidr string, idcname string, vlanid int, vrf string) error {
 							logging.Error(err)
 							return err
 						}
+					} else if v.Brand == "路由表" {
+						cmds := []string{
+							"screen-length 0 temporary",
+							fmt.Sprintf("display ip routing-table vpn-instance %s ip-prefix %s", vrf, cidr),
+							//    add more commands here...
+						}
+						output, err = cmd.RunShellHW(v.UserName, string(Pwresult), v.IP, cmds)
+						if err != nil {
+							logging.Error(err)
+							return err
+						}
 					} else {
-						runarpcmd := fmt.Sprintf(v.RUNARPCmd, strconv.Itoa(vlanid))
+						runarpcmd := fmt.Sprintf("display arp vlan %s", strconv.Itoa(vlanid))
 						command := fmt.Sprintf("/usr/bin/sshpass -p '%s' ssh %s@%s '%s'", Pwresult, v.UserName, v.IP, runarpcmd)
-						// command := fmt.Sprintf("sshpass -p '123456' ssh read-only@192.168.47.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
-						// command := fmt.Sprintf("sshpass -p '123456' ssh readonly@192.168.169.1 'dis arp vlan %s'", strconv.Itoa(vlanid))
 						logging.Debug(command)
 						output, err = cmd.RunShell(command)
 						if err != nil {
@@ -697,17 +726,24 @@ func arp(cidr string, idcname string, vlanid int, vrf string) error {
 					lines := strings.Split(output, "\n")
 					prefix := ipam.PrefixFrom(ctx, cidr)
 					for _, line := range lines {
+						line = strings.TrimLeft(line, " ")
 						if len(line) > 30 {
 							regex := regexp.MustCompile(`(?i)incomplete`)
 							if regex.MatchString(strings.ToLower(line)) {
-								logging.Debug(line)
 								continue
 							}
 							lineData := zp.Split(line, -1)
-							if _, err := netip.ParseAddr(lineData[0]); err == nil {
-								_, ok := prefix.Ips[lineData[0]]
+							var ip string
+							if strings.HasSuffix(lineData[0], "/32") {
+								ip = strings.TrimSuffix(lineData[0], "/32")
+								logging.Info(ip)
+							} else {
+								ip = lineData[0]
+							}
+							if _, err := netip.ParseAddr(ip); err == nil {
+								_, ok := prefix.Ips[ip]
 								if !ok {
-									ips = append(ips, lineData[0])
+									ips = append(ips, ip)
 								}
 							}
 						}
@@ -720,6 +756,7 @@ func arp(cidr string, idcname string, vlanid int, vrf string) error {
 	if ips == nil {
 		return nil
 	}
+	logging.Info(ips)
 	ips = tools.RemoveDuplicateString(ips)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()

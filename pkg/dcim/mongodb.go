@@ -50,6 +50,13 @@ func newMongo(ctx context.Context, m *mongo.Client, conf modelv1.MongoConfig) (*
 func (m *mongodb) CreateIDC(ctx context.Context, idc IDC) (IDC, error) {
 	m.lock.Lock()
 	defer m.lock.Unlock()
+
+	filter := bson.M{"idcname": idc.IDCName}
+	r := m.c.FindOne(ctx, filter)
+	if r.Err() == nil {
+		return IDC{}, errors.New("机房已存在")
+	}
+
 	_, cErr := m.c.InsertOne(ctx, &idc)
 	if cErr != nil {
 		logging.Error("insert mongo error:", cErr)

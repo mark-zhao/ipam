@@ -11,11 +11,11 @@ import (
 
 // 路由器信息
 type Router struct {
-	IP        string `bson:"ip" json:"ip"`
-	UserName  string `bson:"username" json:"username"`
-	Password  string `bson:"password" json:"password"`
-	RUNARPCmd string `bson:"runarpcmd" json:"runarpcmd"`
-	Brand     string `bson:"brand" json:"brand"`
+	IP       string `bson:"ip" json:"ip"`
+	UserName string `bson:"username" json:"username"`
+	Password string `bson:"password" json:"password"`
+	// RUNARPCmd string `bson:"runarpcmd" json:"runarpcmd"`
+	Brand string `bson:"brand" json:"brand"`
 }
 
 // 机房信息

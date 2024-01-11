@@ -12,7 +12,7 @@ import (
 
 	"ipam/pkg/audit"
 	"ipam/pkg/dcim"
-	idc "ipam/pkg/dcim"
+	Administrator "ipam/pkg/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,6 +24,20 @@ type IDCResource struct {
 
 // 注册路由
 func IDCRouter() {
+	p := Administrator.Permission{
+		Id:    4,
+		Label: modelIDC,
+		Children: []Administrator.Permission2{
+			{Id: 41, Label: "IdcList"},
+			{Id: 42, Label: "CreateIDC"},
+			{Id: 43, Label: "DeleteIDC"},
+			{Id: 44, Label: "CreateVRF"},
+			{Id: 45, Label: "DeleteVRF"},
+			{Id: 46, Label: "CreateRouter"},
+			{Id: 47, Label: "DeleteRouter"},
+		},
+	}
+	Permissions = append(Permissions, p)
 	APIs["/idc"] = map[UriInterface]interface{}{
 		NewUri("GET", "/IdcList"):       (&IDCResource{}).IdcList,
 		NewUri("POST", "/CreateIDC"):    (&IDCResource{}).CreateIDC,
@@ -59,7 +73,7 @@ func (*IDCResource) IdcList(c *gin.Context) {
 		resp.Render(c, 403, nil, errors.New("没有权限访问"))
 		return
 	}
-	idcs := idc.IDCs
+	idcs := dcim.IDCs
 	resp.Render(c, 200, GetIdcRes{IDCS: idcs}, nil)
 }
 

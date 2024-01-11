@@ -1,23 +1,18 @@
 package v1
 
 import (
+	"context"
 	"errors"
 	"ipam/component"
-	modelv1 "ipam/model/v1"
+	Administrator "ipam/pkg/user"
 	"ipam/utils/except"
 	"ipam/utils/logging"
-	"ipam/utils/options"
 	"net/http"
 	"time"
 
 	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 )
-
-type loginRequest struct {
-	Username string `form:"username" json:"username"`
-	Password string `form:"password" json:"password"`
-}
 
 type LoginResource struct {
 }
@@ -32,14 +27,34 @@ type RegistInfo struct {
 
 // LoginResult 登录结果结构
 type LoginResult struct {
-	Token        string `json:"token"`
-	options.User `json:"user"`
+	Token              string `json:"token"`
+	Administrator.User `json:"user"`
 }
 
+// func (l *LoginResource) Login(c *gin.Context) {
+// 	var loginReq modelv1.LoginReq
+// 	if c.Bind(&loginReq) == nil {
+// 		isPass, user := modelv1.LoginCheck(loginReq)
+// 		if isPass {
+// 			generateToken(c, user)
+// 			logging.Info("生成token 成功")
+// 		} else {
+// 			resp.Render(c, except.ERROR_AUTH_USER, nil, errors.New(except.GetMsg(except.ERROR_AUTH_USER)))
+// 			logging.Error(except.ERROR_AUTH_USER)
+// 			return
+// 		}
+// 	} else {
+// 		resp.Render(c, except.INVALID_PARAMS, nil, errors.New(except.GetMsg(except.INVALID_PARAMS)))
+// 		logging.Error(except.INVALID_PARAMS)
+// 		return
+// 	}
+// }
+
 func (l *LoginResource) Login(c *gin.Context) {
-	var loginReq modelv1.LoginReq
+	var loginReq Administrator.LoginReq
+	ctx := context.Background()
 	if c.Bind(&loginReq) == nil {
-		isPass, user := modelv1.LoginCheck(loginReq)
+		isPass, user := admin.LoginCheck(ctx, loginReq)
 		if isPass {
 			generateToken(c, user)
 			logging.Info("生成token 成功")
@@ -56,12 +71,11 @@ func (l *LoginResource) Login(c *gin.Context) {
 }
 
 // 生成令牌
-func generateToken(c *gin.Context, user options.User) {
+func generateToken(c *gin.Context, user Administrator.User) {
 	j := &component.JWT{
 		SigningKey: []byte("Woshinibaba"),
 	}
 	claims := component.CustomClaims{
-		ID:    user.Id,
 		Name:  user.Name,
 		Phone: user.Phone,
 		Role:  user.Permission,

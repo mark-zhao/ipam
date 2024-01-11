@@ -5,6 +5,7 @@ import (
 	"errors"
 	"ipam/pkg/audit"
 	"ipam/pkg/note"
+	Administrator "ipam/pkg/user"
 	"ipam/utils/logging"
 	"ipam/utils/tools"
 	"time"
@@ -19,6 +20,16 @@ const modelNOTE string = "NOTE"
 
 // 注册路由
 func NOTERouter() {
+	p := Administrator.Permission{
+		Id:    2,
+		Label: modelNOTE,
+		Children: []Administrator.Permission2{
+			{Id: 21, Label: "NoteList"},
+			{Id: 22, Label: "CreateNote"},
+			{Id: 23, Label: "DeleteNote"},
+		},
+	}
+	Permissions = append(Permissions, p)
 	APIs["/note"] = map[UriInterface]interface{}{
 		NewUri("GET", "/NoteList"):    (&NOTEResource{}).NoteList,
 		NewUri("POST", "/CreateNote"): (&NOTEResource{}).CreateNote,

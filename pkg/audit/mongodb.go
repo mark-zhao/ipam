@@ -40,7 +40,7 @@ func newMongo(ctx context.Context, m *mongo.Client, conf modelv1.MongoConfig) (*
 
 	_, err := c.Indexes().CreateMany(ctx, []mongo.IndexModel{{
 		Keys:    bson.M{dbIndex: 1},
-		Options: options.Index().SetUnique(true),
+		Options: options.Index().SetUnique(false),
 	}})
 	if err != nil {
 		return nil, err
