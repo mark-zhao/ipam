@@ -106,9 +106,11 @@ func (*IDCResource) CreateIDC(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, Res{0}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 删除机房
@@ -146,9 +148,11 @@ func (*IDCResource) DeleteIDC(c *gin.Context) {
 				resp.Render(c, 200, Res{0}, fmt.Errorf("delete prefix: %w", err))
 				return
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, Res{0}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 新建VRF
@@ -186,9 +190,11 @@ func (*IDCResource) CreateVRF(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, Res{0}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 删除VRF
@@ -220,9 +226,11 @@ func (*IDCResource) DeleteVRF(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, Res{0}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 新建路由器
@@ -271,9 +279,11 @@ func (*IDCResource) CreateRouter(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, Res{0}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 删除路由器
@@ -305,7 +315,9 @@ func (*IDCResource) DeleteRouter(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, Res{0}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }

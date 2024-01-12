@@ -251,7 +251,7 @@ func (*InstanceResource) MarkIP(c *gin.Context) {
 		resp.Render(c, 200, res, err)
 		return
 	}
-	resp.Render(c, 200, nil, err)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 所有获取网段
@@ -381,7 +381,7 @@ func (*InstanceResource) GetPrefix(c *gin.Context) {
 		}
 
 	}
-	resp.Render(c, 200, nil, errors.New("解析参数出错"))
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 创建网段
@@ -427,10 +427,11 @@ func (*InstanceResource) CreatePrefix(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
-		resp.Render(c, 200, CreatePrefixRes{1}, nil)
-		return
 	}
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 申请ip
@@ -475,9 +476,8 @@ func (*InstanceResource) AcquireIP(c *gin.Context) {
 			resp.Render(c, 200, AcquireIPRes{*p, ips}, nil)
 			return
 		}
-		resp.Render(c, 200, nil, errors.New("网段不存在"))
-		return
 	}
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 释放ip
@@ -518,7 +518,7 @@ func (*InstanceResource) ReleaseIP(c *gin.Context) {
 			return
 		}
 	}
-	resp.Render(c, 20, nil, fmt.Errorf("程序内部错误"))
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 修改用户ip请求数据
@@ -575,8 +575,10 @@ func (*InstanceResource) EditIPUserFromPrefix(c *gin.Context) {
 		if err := auditer.Add(ctx, a); err != nil {
 			logging.Error("audit insert mongo error:", err)
 		}
+		resp.Render(c, 200, Res{0}, err)
+		return
 	}
-	resp.Render(c, 200, CreatePrefixRes{1}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 修改ip描述属性
@@ -612,8 +614,10 @@ func (*InstanceResource) EditIPDescriptionFromPrefix(c *gin.Context) {
 		if err := auditer.Add(ctx, a); err != nil {
 			logging.Error("audit insert mongo error:", err)
 		}
+		resp.Render(c, 200, Res{0}, nil)
+		return
 	}
-	resp.Render(c, 200, CreatePrefixRes{1}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // 删除网段
@@ -645,8 +649,10 @@ func (*InstanceResource) DeletePrefix(c *gin.Context) {
 		if err := auditer.Add(ctx, a); err != nil {
 			logging.Error("audit insert mongo error:", err)
 		}
+		resp.Render(c, 200, Res{0}, nil)
+		return
 	}
-	resp.Render(c, 200, CreatePrefixRes{1}, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 // arp scan

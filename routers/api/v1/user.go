@@ -144,6 +144,8 @@ func (*UserResource) DeleteUser(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, nil)
+			return
 		}
 	}
 	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
@@ -188,9 +190,7 @@ func (*UserResource) Changer(c *gin.Context) {
 				}
 				req.Pwd = string(Pwresult)
 			}
-			if req.Permission == nil {
-				req.Permission = ouser.Permission
-			} else if ouser.Name == "admin" {
+			if req.Permission == nil || ouser.Name == "admin" {
 				req.Permission = ouser.Permission
 			}
 			if err := admin.Changer(ctx, &req); err != nil {
@@ -207,6 +207,8 @@ func (*UserResource) Changer(c *gin.Context) {
 				if err := auditer.Add(ctx, a); err != nil {
 					logging.Error("audit insert mongo error:", err)
 				}
+				resp.Render(c, 200, Res{0}, nil)
+				return
 			}
 		}
 		if username == req.Name || username != "admin" {
@@ -228,7 +230,6 @@ func (*UserResource) Changer(c *gin.Context) {
 					resp.Render(c, 200, nil, fmt.Errorf("解密失败"))
 					return
 				}
-				logging.Info(string(Pwresult))
 				req.Pwd = string(Pwresult)
 			}
 			if err := admin.Changer(ctx, &req); err != nil {
@@ -245,9 +246,11 @@ func (*UserResource) Changer(c *gin.Context) {
 				if err := auditer.Add(ctx, a); err != nil {
 					logging.Error("audit insert mongo error:", err)
 				}
+				resp.Render(c, 200, Res{0}, nil)
+				return
 			}
 		} else {
-			resp.Render(c, 200, Res{1}, nil)
+			resp.Render(c, 200, Res{1}, fmt.Errorf("你没有权限修改其它用户"))
 			return
 		}
 	}

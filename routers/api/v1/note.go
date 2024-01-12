@@ -90,9 +90,11 @@ func (*NOTEResource) CreateNote(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, nil, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
 
 func (*NOTEResource) DeleteNote(c *gin.Context) {
@@ -130,7 +132,9 @@ func (*NOTEResource) DeleteNote(c *gin.Context) {
 			if err := auditer.Add(ctx, a); err != nil {
 				logging.Error("audit insert mongo error:", err)
 			}
+			resp.Render(c, 200, Res{0}, err)
+			return
 		}
 	}
-	resp.Render(c, 200, nil, nil)
+	resp.Render(c, 200, Res{0}, errors.New("解析数据失败"))
 }
